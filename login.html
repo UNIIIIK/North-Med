@@ -67,7 +67,9 @@
       const SUPABASE_ANON_KEY =
         'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVndmxmdXhxcXZpbW5jdXl6dGdtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAyODg5NzksImV4cCI6MjA4NTg2NDk3OX0.Gxi3Z8YexMgV6BKAvUUeUZl2mfKAWViSwdVmRE9Lry0';
 
-      const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      // Use a different variable name so we don't conflict with the global
+      // `supabase` object that the CDN script exposes.
+      const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
       // Domain used to turn simple usernames into valid Supabase emails.
       // Example: username "admin" becomes "admin@northmed.local".
@@ -92,7 +94,7 @@
           ? username
           : `${username}@${USERNAME_EMAIL_DOMAIN}`;
 
-        const { data, error } = await supabase.auth.signInWithPassword({
+        const { data, error } = await supabaseClient.auth.signInWithPassword({
           email,
           password,
         });
