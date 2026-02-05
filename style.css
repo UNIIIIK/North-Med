@@ -150,6 +150,16 @@ body {
   color: var(--color-text-muted);
 }
 
+.app-header__logo {
+  width: 52px;
+  height: 52px;
+  border-radius: 999px;
+  object-fit: cover;
+  margin-right: 10px;
+  box-shadow: 0 0 0 2px rgba(248, 250, 252, 0.6);
+  background: #fff;
+}
+
 .app-header__topbar {
   display: flex;
   align-items: center;
@@ -786,6 +796,53 @@ td:last-child {
 }
 
 /* ===========
+   Login page
+   =========== */
+
+.login-body {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.login-container {
+  width: 100%;
+  max-width: 420px;
+  padding: 20px;
+}
+
+.login-card {
+  border-radius: var(--radius-lg);
+}
+
+.login-logo {
+  margin-bottom: 8px;
+}
+
+.login-logo__img {
+  width: 72px;
+  height: 72px;
+  border-radius: 999px;
+  object-fit: cover;
+  box-shadow: 0 0 0 2px rgba(248, 250, 252, 0.7);
+  background: #fff;
+}
+
+.login-form .form-actions {
+  justify-content: center;
+}
+
+.login-error {
+  margin-top: 8px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: rgba(127, 29, 29, 0.9);
+  color: #fee2e2;
+  font-size: 0.8rem;
+}
+
+/* ===========
    Responsive
    =========== */
 
@@ -822,6 +879,9 @@ td:last-child {
 @media (max-width: 640px) {
   .app-header {
     padding-inline: 16px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
   }
 
   .app-main {
@@ -843,6 +903,41 @@ td:last-child {
 
   .kpi-row {
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  /* Allow horizontal scrolling for wide table on small screens */
+  .table-wrapper {
+    overflow-x: auto;
+    overflow-y: hidden;
+  }
+
+  table {
+    min-width: 720px;
+  }
+
+  /* Make floating button less obtrusive on mobile */
+  .fab {
+    right: 12px;
+    bottom: 14px;
+    padding-inline: 14px;
+  }
+}
+
+@media (max-width: 480px) {
+  .topbar-profile__meta {
+    display: none;
+  }
+
+  .topbar-search {
+    width: 100%;
+  }
+
+  .topbar-search__input {
+    width: 100%;
+  }
+
+  .toolbar__group {
+    min-width: 100%;
   }
 }
 

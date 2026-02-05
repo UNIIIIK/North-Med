@@ -790,11 +790,47 @@ const UI = (() => {
 })();
 
 // ===============================
-// Bootstrap
+// Bootstrap with auth guard
 // ===============================
 
-document.addEventListener('DOMContentLoaded', () => {
-  UI.init();
-});
+async function bootstrap() {
+  const supabase = window.supabaseClient;
+  if (!supabase) {
+    // If Supabase is not available, just init UI (fallback)
+    await UI.init();
+    return;
+  }
 
+  try {
+    const { data, error } = await supabase.auth.getUser();
+    if (error || !data || !data.user) {
+      // Not logged in - send to login page
+      window.location.href = 'login.html';
+      return;
+    }
+  } catch (err) {
+    console.error('Error checking auth state', err);
+    window.location.href = 'login.html';
+    return;
+  }
+
+  await UI.init();
+
+  // Wire up logout button if present
+  const logoutBtn = document.getElementById('logoutBtn');
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', async () => {
+      try {
+        await supabase.auth.signOut();
+      } catch (err) {
+        console.error('Error signing out', err);
+      }
+      window.location.href = 'login.html';
+    });
+  }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  bootstrap();
+});
 

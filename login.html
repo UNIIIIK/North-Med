@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>North Med Diagnostics - Login</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
+      crossorigin="anonymous"
+    />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body class="login-body">
+    <div class="login-container">
+      <div class="login-card card">
+        <div class="card__header text-center">
+          <div class="login-logo">
+            <img
+              src="logo.png"
+              alt="North Med Diagnostics logo"
+              class="login-logo__img"
+            />
+          </div>
+          <h3>North Med Diagnostics</h3>
+          <p class="subtitle">Laboratory Inventory System</p>
+        </div>
+        <div class="card__body">
+          <form id="loginForm" class="login-form" autocomplete="off">
+            <div class="form-group form-group--full">
+              <label for="username">Username</label>
+              <input
+                type="text"
+                id="username"
+                name="username"
+                class="form-control form-control-sm"
+                placeholder="Enter your username"
+                required
+              />
+            </div>
+            <div class="form-group form-group--full">
+              <label for="password">Password</label>
+              <input
+                type="password"
+                id="password"
+                name="password"
+                class="form-control form-control-sm"
+                placeholder="Enter your password"
+                required
+              />
+            </div>
+            <div class="login-error" id="loginError" hidden></div>
+            <div class="form-actions">
+              <button type="submit" class="btn btn-primary btn-sm btn--primary w-100">
+                Sign In
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+      const SUPABASE_URL = 'https://ugvlfuxqqvimncuyztgm.supabase.co';
+      const SUPABASE_ANON_KEY =
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVndmxmdXhxcXZpbW5jdXl6dGdtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAyODg5NzksImV4cCI6MjA4NTg2NDk3OX0.Gxi3Z8YexMgV6BKAvUUeUZl2mfKAWViSwdVmRE9Lry0';
+
+      const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+      // Domain used to turn simple usernames into valid Supabase emails.
+      // Example: username "admin" becomes "admin@northmed.local".
+      const USERNAME_EMAIL_DOMAIN = 'northmed.local';
+
+      async function handleLogin(event) {
+        event.preventDefault();
+        const username = document.getElementById('username').value.trim();
+        const password = document.getElementById('password').value;
+        const errorBox = document.getElementById('loginError');
+        errorBox.hidden = true;
+        errorBox.textContent = '';
+
+        if (!username || !password) {
+          errorBox.textContent = 'Username and password are required.';
+          errorBox.hidden = false;
+          return;
+        }
+
+        // Convert entered username to a valid email for Supabase auth.
+        const email = username.includes('@')
+          ? username
+          : `${username}@${USERNAME_EMAIL_DOMAIN}`;
+
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+
+        if (error) {
+          errorBox.textContent = error.message || 'Login failed. Please try again.';
+          errorBox.hidden = false;
+          return;
+        }
+
+        // On success, go to main dashboard
+        window.location.href = 'index.html';
+      }
+
+      document
+        .getElementById('loginForm')
+        .addEventListener('submit', handleLogin);
+    </script>
+  </body>
+  </html>
+
