@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>North Med Diagnostics - Inventory</title>
+    <!-- Bootstrap 5 CSS -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
+      crossorigin="anonymous"
+    />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="app-main-column">
+        <!-- Top bar -->
+        <header class="app-header">
+          <div class="app-header__title-group">
+            <h1>Reagent Dashboard</h1>
+            <h2>Laboratory Inventory System</h2>
+          </div>
+          <div class="app-header__topbar">
+            <div class="topbar-search">
+              <span class="topbar-search__icon">🔍</span>
+              <input
+                id="topSearchInput"
+                type="text"
+                class="topbar-search__input"
+                placeholder="Search inventory..."
+              />
+            </div>
+            <button class="topbar-icon" type="button" aria-label="Notifications">🔔</button>
+            <div class="topbar-profile">
+              <div class="topbar-profile__avatar">ND</div>
+              <div class="topbar-profile__meta">
+                <span class="topbar-profile__name">Med Tech</span>
+                <span class="topbar-profile__role">North Med Diagnostics</span>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        <main class="app-main container-fluid">
+          <!-- KPI cards -->
+          <section class="kpi-row">
+            <div class="kpi-card kpi-card--warning">
+              <div class="kpi-card__label">Expiring ≤ 90 days</div>
+              <div class="kpi-card__value" id="kpiExpSoon">0</div>
+            </div>
+            <div class="kpi-card kpi-card--danger">
+              <div class="kpi-card__label">Expired / Out of Stock</div>
+              <div class="kpi-card__value" id="kpiOutOrZero">0</div>
+            </div>
+            <div class="kpi-card kpi-card--primary">
+              <div class="kpi-card__label">Total Active Items</div>
+              <div class="kpi-card__value" id="kpiTotal">0</div>
+            </div>
+          </section>
+
+          <!-- Inventory card -->
+          <section class="card card--inventory">
+            <div class="card__header card__header--row">
+              <div>
+                <h3>Inventory</h3>
+                <p class="subtitle">View, filter, and manage all reagent inventory.</p>
+              </div>
+              <div class="d-flex align-items-center gap-2">
+                <button
+                  class="btn btn-outline-secondary btn-sm"
+                  type="button"
+                  data-bs-toggle="collapse"
+                  data-bs-target="#filterPanel"
+                  aria-expanded="true"
+                  aria-controls="filterPanel"
+                >
+                  Filters
+                </button>
+                <button id="exportCsvBtn" class="btn btn--secondary btn-sm" type="button">Export CSV</button>
+              </div>
+            </div>
+
+            <div class="card__body">
+              <div class="pill-summary mb-3" id="alertSummary"></div>
+
+              <!-- Collapsible filters -->
+              <div class="collapse show" id="filterPanel">
+                <div class="toolbar">
+            <div class="toolbar__group">
+              <label class="toolbar__label" for="searchInput">Search</label>
+              <input
+                type="text"
+                id="searchInput"
+                class="toolbar__input form-control form-control-sm"
+                placeholder="Search by item, lot, brand, or remarks..."
+              />
+            </div>
+
+              <div class="toolbar__group">
+                <label class="toolbar__label" for="filterCategory">Category</label>
+                <select id="filterCategory" class="toolbar__input form-select form-select-sm">
+                  <option value="">All</option>
+                  <option value="Chemistry">Chemistry</option>
+                  <option value="Hematology">Hematology</option>
+                  <option value="Immunoserology">Immunoserology</option>
+                </select>
+              </div>
+
+              <div class="toolbar__group">
+                <label class="toolbar__label" for="filterStatus">Status</label>
+                <select id="filterStatus" class="toolbar__input form-select form-select-sm">
+                  <option value="">All</option>
+                  <option value="Unopened">Unopened</option>
+                  <option value="Opened">Opened</option>
+                  <option value="Out of Stock">Out of Stock</option>
+                </select>
+              </div>
+
+            <div class="toolbar__group">
+              <label class="toolbar__label" for="filterExpiry">Expiry</label>
+              <select id="filterExpiry" class="toolbar__input form-select form-select-sm">
+                <option value="">All</option>
+                <option value="expired">Expired</option>
+                <option value="3months">Expiring ≤ 90 days</option>
+                <option value="good">> 90 days</option>
+              </select>
+            </div>
+
+            <div class="toolbar__group">
+              <label class="toolbar__label" for="filterLowStock">Low Stock</label>
+              <select id="filterLowStock" class="toolbar__input form-select form-select-sm">
+                <option value="">All</option>
+                <option value="low">Low (&lt;= 2)</option>
+              </select>
+            </div>
+                </div>
+              </div>
+
+              <div class="table-wrapper mt-2">
+                <table
+                  id="inventoryTable"
+                  class="table table-dark table-striped table-hover align-middle mb-0"
+                >
+                  <thead>
+                    <tr>
+                      <th data-sort="category">Category</th>
+                      <th data-sort="itemName">Item Name</th>
+                      <th data-sort="brand">Brand / Supplier</th>
+                      <th data-sort="contentVolume">Content Volume</th>
+                      <th data-sort="lotNumber">Lot</th>
+                      <th data-sort="dateReceived">Received</th>
+                      <th data-sort="expiryDate">Expiry</th>
+                      <th data-sort="status">Status</th>
+                      <th data-sort="quantity">Qty</th>
+                      <th>Expiry Status</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="inventoryTableBody">
+                    <!-- rows injected by script.js -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </section>
+        </main>
+
+        <footer class="app-footer text-center">
+          <span
+            >&copy; <span id="yearSpan"></span> North Med Diagnostics. All rights reserved.</span
+          >
+        </footer>
+      </div>
+    </div>
+
+    <!-- Add Item Modal -->
+    <div class="modal-backdrop" id="addModalBackdrop" hidden>
+      <div class="modal modal--light">
+        <div class="modal__header">
+          <h3>Add New Inventory Item</h3>
+          <button class="modal__close" id="addModalCloseBtn">&times;</button>
+        </div>
+        <div class="modal__body">
+          <form id="inventoryForm" autocomplete="off" class="needs-validation" novalidate>
+            <div class="form-grid">
+              <div class="form-group">
+                <label for="category">Category</label>
+                <select id="category" name="category" class="form-select form-select-sm" required>
+                  <option value="">Select category</option>
+                  <option value="Chemistry">Chemistry</option>
+                  <option value="Hematology">Hematology</option>
+                  <option value="Immunoserology">Immunoserology</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="itemName">Item Name</label>
+                <select id="itemName" name="itemName" class="form-select form-select-sm" required>
+                  <option value="">Select item</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="brand">Brand / Supplier</label>
+                <input
+                  type="text"
+                  id="brand"
+                  name="brand"
+                  class="form-control form-control-sm"
+                  placeholder="e.g. Roche, Abbott"
+                />
+              </div>
+
+              <div class="form-group">
+                <label for="contentVolume">Content Volume</label>
+                <input
+                  type="text"
+                  id="contentVolume"
+                  name="contentVolume"
+                  class="form-control form-control-sm"
+                  placeholder="e.g. 5 x 50 ml kit"
+                />
+              </div>
+
+              <div class="form-group">
+                <label for="lotNumber">Lot Number</label>
+                <input type="text" id="lotNumber" name="lotNumber" class="form-control form-control-sm" />
+              </div>
+
+              <div class="form-group">
+                <label for="dateReceived">Date Received</label>
+                <input type="date" id="dateReceived" name="dateReceived" class="form-control form-control-sm" />
+              </div>
+
+              <div class="form-group">
+                <label for="expiryDate">Expiry Date</label>
+                <input
+                  type="date"
+                  id="expiryDate"
+                  name="expiryDate"
+                  class="form-control form-control-sm"
+                  required
+                />
+              </div>
+
+              <div class="form-group">
+                <label for="status">Status</label>
+                <select id="status" name="status" class="form-select form-select-sm" required>
+                  <option value="Unopened">Unopened</option>
+                  <option value="Opened">Opened</option>
+                  <option value="Out of Stock">Out of Stock</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="quantity">Quantity Remaining</label>
+                <input
+                  type="number"
+                  id="quantity"
+                  name="quantity"
+                  class="form-control form-control-sm"
+                  min="0"
+                  step="1"
+                  required
+                />
+              </div>
+
+
+            </div>
+
+            <div class="form-actions">
+              <button type="button" class="btn btn-secondary btn-sm btn--ghost" id="addCancelBtn">
+                Cancel
+              </button>
+              <button type="submit" class="btn btn-primary btn-sm btn--primary" id="submitBtn">
+                Add Item
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Edit Modal -->
+    <div class="modal-backdrop" id="editModalBackdrop" hidden>
+      <div class="modal">
+        <div class="modal__header">
+          <h3>Edit Inventory Item</h3>
+          <button class="modal__close" id="editModalCloseBtn">&times;</button>
+        </div>
+        <div class="modal__body">
+          <form id="editForm" class="needs-validation" novalidate>
+            <input type="hidden" id="editId" />
+            <div class="form-grid">
+              <div class="form-group">
+                <label for="editCategory">Category</label>
+                <select id="editCategory" name="editCategory" class="form-select form-select-sm" required>
+                  <option value="Chemistry">Chemistry</option>
+                  <option value="Hematology">Hematology</option>
+                  <option value="Immunoserology">Immunoserology</option>
+                </select>
+              </div>
+
+              <div class="form-group form-group--full">
+                <label for="editItemName">Item Name</label>
+                <input
+                  type="text"
+                  id="editItemName"
+                  name="editItemName"
+                  class="form-control form-control-sm"
+                  required
+                />
+              </div>
+
+              <div class="form-group">
+                <label for="editBrand">Brand / Supplier</label>
+                <input type="text" id="editBrand" name="editBrand" class="form-control form-control-sm" />
+              </div>
+
+              <div class="form-group">
+                <label for="editContentVolume">Content Volume</label>
+                <input
+                  type="text"
+                  id="editContentVolume"
+                  name="editContentVolume"
+                  class="form-control form-control-sm"
+                />
+              </div>
+
+              <div class="form-group">
+                <label for="editLotNumber">Lot Number</label>
+                <input type="text" id="editLotNumber" name="editLotNumber" class="form-control form-control-sm" />
+              </div>
+
+              <div class="form-group">
+                <label for="editDateReceived">Date Received</label>
+                <input
+                  type="date"
+                  id="editDateReceived"
+                  name="editDateReceived"
+                  class="form-control form-control-sm"
+                />
+              </div>
+
+              <div class="form-group">
+                <label for="editExpiryDate">Expiry Date</label>
+                <input
+                  type="date"
+                  id="editExpiryDate"
+                  name="editExpiryDate"
+                  class="form-control form-control-sm"
+                  required
+                />
+              </div>
+
+              <div class="form-group">
+                <label for="editStatus">Status</label>
+                <select id="editStatus" name="editStatus" class="form-select form-select-sm" required>
+                  <option value="Unopened">Unopened</option>
+                  <option value="Opened">Opened</option>
+                  <option value="Out of Stock">Out of Stock</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="editQuantity">Quantity Remaining</label>
+                <input
+                  type="number"
+                  id="editQuantity"
+                  name="editQuantity"
+                  class="form-control form-control-sm"
+                  min="0"
+                  step="1"
+                  required
+                />
+              </div>
+
+
+            </div>
+
+            <div class="form-actions">
+              <button type="button" class="btn btn-secondary btn-sm btn--ghost" id="editCancelBtn">
+                Cancel
+              </button>
+              <button type="submit" class="btn btn-primary btn-sm btn--primary">
+                Save Changes
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Floating Add button -->
+    <button
+      type="button"
+      id="fabAddItem"
+      class="fab btn btn-primary btn-lg"
+      aria-label="Add new reagent"
+    >
+      ➕ Add Reagent
+    </button>
+
+    <!-- Bootstrap 5 JS (for base components if needed) -->
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+      crossorigin="anonymous"
+    ></script>
+
+    <!-- Supabase JS client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+      const SUPABASE_URL = 'https://ugvlfuxqqvimncuyztgm.supabase.co';
+      const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVndmxmdXhxcXZpbW5jdXl6dGdtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAyODg5NzksImV4cCI6MjA4NTg2NDk3OX0.Gxi3Z8YexMgV6BKAvUUeUZl2mfKAWViSwdVmRE9Lry0';
+
+      // Global Supabase client for script.js
+      window.supabaseClient = window.supabase.createClient(
+        SUPABASE_URL,
+        SUPABASE_ANON_KEY
+      );
+    </script>
+
+    <script src="script.js"></script>
+  </body>
+  </html>
+
+
