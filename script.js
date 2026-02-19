@@ -109,54 +109,57 @@ const InventoryRepository = (() => {
   const TABLE_NAME = 'inventory_items';
   const CUSTOM_ITEMS_TABLE = 'inventory_custom_items';
 
-async function loadCustomItems(category) {
-  const supabase = getClient();
-  if (!supabase || !category) return [];
-
-  try {
-    const { data, error } = await supabase
-      .from(CUSTOM_ITEMS_TABLE)
-      .select('item_name')
-      .eq('category', category)
-      .order('item_name', { ascending: true });
-
-    if (error) {
-      console.error('Failed to load custom items', error);
-      return [];
-    }
-
-    return (data || []).map((r) => r.item_name).filter(Boolean);
-  } catch (err) {
-    console.error('Unexpected error loading custom items', err);
-    return [];
-  }
-}
-
-async function saveCustomItem(category, itemName) {
-  const supabase = getClient();
-  if (!supabase || !category || !itemName) return;
-
-  try {
-    const { error } = await supabase.from(CUSTOM_ITEMS_TABLE).insert({
-      category,
-      item_name: itemName,
-    });
-
-    // Ignore duplicates (because of unique index)
-    if (error && !String(error.message || '').toLowerCase().includes('duplicate')) {
-      console.error('Failed to save custom item', error);
-    }
-  } catch (err) {
-    console.error('Unexpected error saving custom item', err);
-  }
-}
-
   function getClient() {
     const client = window.supabaseClient;
     if (!client) {
       console.error('Supabase client not found on window.supabaseClient');
     }
     return client;
+  }
+
+  async function loadCustomItems(category) {
+    const supabase = getClient();
+    if (!supabase || !category) return [];
+
+    try {
+      const { data, error } = await supabase
+        .from(CUSTOM_ITEMS_TABLE)
+        .select('item_name')
+        .eq('category', category)
+        .order('item_name', { ascending: true });
+
+      if (error) {
+        console.error('Failed to load custom items', error);
+        return [];
+      }
+
+      return (data || []).map((r) => r.item_name).filter(Boolean);
+    } catch (err) {
+      console.error('Unexpected error loading custom items', err);
+      return [];
+    }
+  }
+
+  async function saveCustomItem(category, itemName) {
+    const supabase = getClient();
+    if (!supabase || !category || !itemName) return;
+
+    try {
+      const { error } = await supabase.from(CUSTOM_ITEMS_TABLE).insert({
+        category,
+        item_name: itemName,
+      });
+
+      // Ignore duplicates (because of unique index)
+      if (
+        error &&
+        !String(error.message || '').toLowerCase().includes('duplicate')
+      ) {
+        console.error('Failed to save custom item', error);
+      }
+    } catch (err) {
+      console.error('Unexpected error saving custom item', err);
+    }
   }
 
   function mapRowToItem(row) {
@@ -202,6 +205,7 @@ async function saveCustomItem(category, itemName) {
         .from(TABLE_NAME)
         .select('*')
         .order('expiry_date', { ascending: true });
+
       if (error) {
         console.error('Failed to load inventory from Supabase', error);
         return [];
@@ -225,7 +229,6 @@ async function saveCustomItem(category, itemName) {
     } catch (err) {
       console.error('Unexpected error upserting inventory item in Supabase', err);
     }
-    // Always return a fresh list
     return load();
   }
 
@@ -233,35 +236,29 @@ async function saveCustomItem(category, itemName) {
     const supabase = getClient();
     if (!supabase) return [];
     try {
-      const { error } = await supabase
-        .from(TABLE_NAME)
-        .delete()
-        .eq('id', id);
+      const { error } = await supabase.from(TABLE_NAME).delete().eq('id', id);
       if (error) {
         console.error('Failed to delete inventory item in Supabase', error);
       }
     } catch (err) {
       console.error('Unexpected error deleting inventory item in Supabase', err);
     }
-    // Return updated list
     return load();
   }
 
   async function initializeWithSampleDataIfEmpty() {
-    // For Supabase-backed storage we simply load existing rows.
     const items = await load();
     return items;
   }
 
   return {
-  load,
-  upsert,
-  remove,
-  initializeWithSampleDataIfEmpty,
-  loadCustomItems,
-  saveCustomItem,
-};
-
+    load,
+    upsert,
+    remove,
+    initializeWithSampleDataIfEmpty,
+    loadCustomItems,
+    saveCustomItem,
+  };
 })();
 
 // ===============================
@@ -271,7 +268,9 @@ async function saveCustomItem(category, itemName) {
 const InventoryService = (() => {
   function createItem(payload) {
     return {
-      id: payload.id || `itm-${Date.now()}-${Math.random().toString(16).slice(2)}`,
+      id:
+        payload.id ||
+        `itm-${Date.now()}-${Math.random().toString(16).slice(2)}`,
       category: payload.category,
       itemName: payload.itemName,
       brand: payload.brand || '',
@@ -322,8 +321,10 @@ const InventoryService = (() => {
       }
 
       const expInfo = DateUtils.classifyExpiry(i.expiryDate);
-      if (filters.expiry === 'expired' && expInfo.code !== 'expired') return false;
-      if (filters.expiry === '3months' && expInfo.code !== 'warning') return false;
+      if (filters.expiry === 'expired' && expInfo.code !== 'expired')
+        return false;
+      if (filters.expiry === '3months' && expInfo.code !== 'warning')
+        return false;
       if (filters.expiry === 'good' && expInfo.code !== 'good') return false;
 
       if (filters.lowStock === 'low' && !(i.quantity <= 2)) return false;
@@ -437,118 +438,133 @@ const UI = (() => {
   }
 
   function initCategoryItemOptions() {
-  if (!els.category || !els.itemName) return;
+    if (!els.category || !els.itemName) return;
 
-  async function populate() {
-    const category = els.category.value;
-    const select = els.itemName;
+    async function populate() {
+      const category = els.category.value;
+      const select = els.itemName;
 
-    // Reset dropdown
-    select.innerHTML = '<option value="">Select item</option>';
+      // Reset dropdown
+      select.innerHTML = '<option value="">Select item</option>';
 
-    // Reset custom item field
+      // Reset custom item field
+      if (els.customItemName) {
+        els.customItemName.value = '';
+        els.customItemName.hidden = true;
+        els.customItemName.required = false;
+      }
+
+      if (!category) return;
+
+      // 1) Add default items
+      if (CategoryItems[category]) {
+        CategoryItems[category].forEach((name) => {
+          const opt = document.createElement('option');
+          opt.value = name;
+          opt.textContent = name;
+          select.appendChild(opt);
+        });
+      }
+
+      // 2) Load custom items from Supabase
+      const customItems = await InventoryRepository.loadCustomItems(category);
+
+      customItems.forEach((name) => {
+        const existsInDefault = (CategoryItems[category] || []).includes(name);
+        if (existsInDefault) return;
+
+        const opt = document.createElement('option');
+        opt.value = name;
+        opt.textContent = `${name} (Custom)`;
+        select.appendChild(opt);
+      });
+
+      // 3) Add "Other"
+      const otherOpt = document.createElement('option');
+      otherOpt.value = '__other__';
+      otherOpt.textContent = 'Other';
+      select.appendChild(otherOpt);
+    }
+
+    // Category change
+    els.category.addEventListener('change', populate);
+
+    // Item change -> show/hide textbox
+    els.itemName.addEventListener('change', () => {
+      if (!els.customItemName) return;
+
+      if (els.itemName.value === '__other__') {
+        els.customItemName.hidden = false;
+        els.customItemName.required = true;
+        els.customItemName.focus();
+      } else {
+        els.customItemName.hidden = true;
+        els.customItemName.required = false;
+        els.customItemName.value = '';
+      }
+    });
+
+    populate();
+  }
+
+  // ✅ UPDATED FUNCTION (CORRECT VERSION)
+  async function handleFormSubmit(e) {
+    e.preventDefault();
+
+    const formData = new FormData(els.inventoryForm);
+
+    const payloadCategory = formData.get('category');
+    let selectedItemName = formData.get('itemName');
+    const customItemName = (formData.get('customItemName') || '').trim();
+
+    // If Other -> use custom
+    if (selectedItemName === '__other__') {
+      selectedItemName = customItemName;
+    }
+
+    // Basic validation for custom
+    if (!selectedItemName || selectedItemName.trim() === '') {
+      alert('Item Name is required.');
+      return;
+    }
+
+    const payload = {
+      category: payloadCategory,
+      itemName: selectedItemName,
+      brand: formData.get('brand'),
+      contentVolume: formData.get('contentVolume'),
+      lotNumber: formData.get('lotNumber'),
+      dateReceived: formData.get('dateReceived'),
+      expiryDate: formData.get('expiryDate'),
+      status: formData.get('status'),
+      quantity: Number(formData.get('quantity')),
+      remarks: '',
+    };
+
+    // If user typed custom -> save it permanently
+    if (formData.get('itemName') === '__other__') {
+      await InventoryRepository.saveCustomItem(payload.category, payload.itemName);
+    }
+
+    const item = InventoryService.createItem(payload);
+    const errors = InventoryService.validate(item);
+
+    if (errors.length) {
+      alert('Please fix the following issues:\n- ' + errors.join('\n- '));
+      return;
+    }
+
+    state.items = await InventoryRepository.upsert(item);
+
+    els.inventoryForm.reset();
+
+    // Hide custom field after reset
     if (els.customItemName) {
       els.customItemName.value = '';
       els.customItemName.hidden = true;
       els.customItemName.required = false;
     }
 
-    if (!category) return;
-
-    // 1) Add default items
-    if (CategoryItems[category]) {
-      CategoryItems[category].forEach((name) => {
-        const opt = document.createElement('option');
-        opt.value = name;
-        opt.textContent = name;
-        select.appendChild(opt);
-      });
-    }
-
-    // 2) Load custom items from Supabase
-    const customItems = await InventoryRepository.loadCustomItems(category);
-
-    customItems.forEach((name) => {
-      // avoid duplicates if it already exists in default list
-      const existsInDefault = (CategoryItems[category] || []).includes(name);
-      if (existsInDefault) return;
-
-      const opt = document.createElement('option');
-      opt.value = name;
-      opt.textContent = `${name} (Custom)`;
-      select.appendChild(opt);
-    });
-
-    // 3) Add "Other"
-    const otherOpt = document.createElement('option');
-    otherOpt.value = '__other__';
-    otherOpt.textContent = 'Other';
-    select.appendChild(otherOpt);
-  }
-
-  // Category change
-  els.category.addEventListener('change', populate);
-
-  // Item change -> show/hide textbox
-  els.itemName.addEventListener('change', () => {
-    if (!els.customItemName) return;
-
-    if (els.itemName.value === '__other__') {
-      els.customItemName.hidden = false;
-      els.customItemName.required = true;
-      els.customItemName.focus();
-    } else {
-      els.customItemName.hidden = true;
-      els.customItemName.required = false;
-      els.customItemName.value = '';
-    }
-  });
-
-  populate();
-}
-
-
-  async function handleFormSubmit(e) {
-    e.preventDefault();
-    const formData = new FormData(els.inventoryForm);
-    
-   let selectedItemName = formData.get('itemName');
-const customItemName = (formData.get('customItemName') || '').trim();
-
-if (selectedItemName === '__other__') {
-  selectedItemName = customItemName;
-
-  // Save custom reagent permanently to Supabase
-  if (selectedItemName && payloadCategory) {
-    await InventoryRepository.saveCustomItem(payloadCategory, selectedItemName);
-  }
-}
-
-const payload = {
-  category: formData.get('category'),
-  itemName: selectedItemName,
-  brand: formData.get('brand'),
-  contentVolume: formData.get('contentVolume'),
-  lotNumber: formData.get('lotNumber'),
-  dateReceived: formData.get('dateReceived'),
-  expiryDate: formData.get('expiryDate'),
-  status: formData.get('status'),
-  quantity: Number(formData.get('quantity')),
-  remarks: '',
-};
-
-    const item = InventoryService.createItem(payload);
-    const errors = InventoryService.validate(item);
-    if (!payload.itemName || payload.itemName.trim() === '') {
-  alert('Item Name is required.');
-  return;
-}
-    if (errors.length) {
-      alert('Please fix the following issues:\n- ' + errors.join('\n- '));
-      return;
-    }
-    state.items = await InventoryRepository.upsert(item);
-    els.inventoryForm.reset();
     closeAddModal();
     render();
   }
@@ -732,7 +748,9 @@ const payload = {
     const pills = [];
     if (alerts.expired > 0) {
       pills.push(
-        `<span class="pill pill--danger">${alerts.expired} expired item${alerts.expired === 1 ? '' : 's'}</span>`
+        `<span class="pill pill--danger">${alerts.expired} expired item${
+          alerts.expired === 1 ? '' : 's'
+        }</span>`
       );
     }
     if (alerts.expSoon > 0) {
@@ -747,9 +765,7 @@ const payload = {
       );
     }
     if (pills.length === 0) {
-      pills.push(
-        '<span class="pill pill--muted">No critical alerts</span>'
-      );
+      pills.push('<span class="pill pill--muted">No critical alerts</span>');
     }
     els.alertSummary.innerHTML = pills.join('');
 
@@ -918,7 +934,6 @@ const payload = {
 async function bootstrap() {
   const supabase = window.supabaseClient;
   if (!supabase) {
-    // If Supabase is not available, just init UI (fallback)
     await UI.init();
     return;
   }
@@ -926,7 +941,6 @@ async function bootstrap() {
   try {
     const { data, error } = await supabase.auth.getUser();
     if (error || !data || !data.user) {
-      // Not logged in - send to login page
       window.location.href = 'login.html';
       return;
     }
@@ -955,4 +969,3 @@ async function bootstrap() {
 document.addEventListener('DOMContentLoaded', () => {
   bootstrap();
 });
-
