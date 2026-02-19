@@ -24,6 +24,7 @@ const CategoryItems = Object.freeze({
     'Urea',
     'Creatinine',
     'TB',
+    'Pathologic Control',
     'DB',
   ],
   Hematology: [
