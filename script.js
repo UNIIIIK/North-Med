@@ -354,6 +354,7 @@ const UI = (() => {
   function cacheDom() {
     els.category = document.getElementById('category');
     els.itemName = document.getElementById('itemName');
+    els.customItemName = document.getElementById('customItemName');
     els.inventoryForm = document.getElementById('inventoryForm');
     els.submitBtn = document.getElementById('submitBtn');
     els.tableBody = document.getElementById('inventoryTableBody');
@@ -385,42 +386,91 @@ const UI = (() => {
   }
 
   function initCategoryItemOptions() {
-    if (!els.category || !els.itemName) return;
+  if (!els.category || !els.itemName) return;
 
-    function populate() {
-      const category = els.category.value;
-      const select = els.itemName;
-      select.innerHTML = '<option value="">Select item</option>';
-      if (!category || !CategoryItems[category]) return;
-      CategoryItems[category].forEach((name) => {
-        const opt = document.createElement('option');
-        opt.value = name;
-        opt.textContent = name;
-        select.appendChild(opt);
-      });
+  function populate() {
+    const category = els.category.value;
+    const select = els.itemName;
+
+    // Reset dropdown
+    select.innerHTML = '<option value="">Select item</option>';
+
+    // Reset custom item field
+    if (els.customItemName) {
+      els.customItemName.value = '';
+      els.customItemName.hidden = true;
+      els.customItemName.required = false;
     }
 
-    els.category.addEventListener('change', populate);
-    populate();
+    if (!category || !CategoryItems[category]) return;
+
+    // Add normal items
+    CategoryItems[category].forEach((name) => {
+      const opt = document.createElement('option');
+      opt.value = name;
+      opt.textContent = name;
+      select.appendChild(opt);
+    });
+
+    // Add "Other" option
+    const otherOpt = document.createElement('option');
+    otherOpt.value = '__other__';
+    otherOpt.textContent = 'Other';
+    select.appendChild(otherOpt);
   }
+
+  // When category changes -> rebuild items
+  els.category.addEventListener('change', populate);
+
+  // When item changes -> show/hide textbox
+  els.itemName.addEventListener('change', () => {
+    if (!els.customItemName) return;
+
+    if (els.itemName.value === '__other__') {
+      els.customItemName.hidden = false;
+      els.customItemName.required = true;
+      els.customItemName.focus();
+    } else {
+      els.customItemName.hidden = true;
+      els.customItemName.required = false;
+      els.customItemName.value = '';
+    }
+  });
+
+  populate();
+}
+
 
   async function handleFormSubmit(e) {
     e.preventDefault();
     const formData = new FormData(els.inventoryForm);
-    const payload = {
-      category: formData.get('category'),
-      itemName: formData.get('itemName'),
-      brand: formData.get('brand'),
-      contentVolume: formData.get('contentVolume'),
-      lotNumber: formData.get('lotNumber'),
-      dateReceived: formData.get('dateReceived'),
-      expiryDate: formData.get('expiryDate'),
-      status: formData.get('status'),
-      quantity: Number(formData.get('quantity')),
-      remarks: '',
-    };
+    
+   let selectedItemName = formData.get('itemName');
+const customItemName = (formData.get('customItemName') || '').trim();
+
+if (selectedItemName === '__other__') {
+  selectedItemName = customItemName;
+}
+
+const payload = {
+  category: formData.get('category'),
+  itemName: selectedItemName,
+  brand: formData.get('brand'),
+  contentVolume: formData.get('contentVolume'),
+  lotNumber: formData.get('lotNumber'),
+  dateReceived: formData.get('dateReceived'),
+  expiryDate: formData.get('expiryDate'),
+  status: formData.get('status'),
+  quantity: Number(formData.get('quantity')),
+  remarks: '',
+};
+
     const item = InventoryService.createItem(payload);
     const errors = InventoryService.validate(item);
+    if (!payload.itemName || payload.itemName.trim() === '') {
+  alert('Item Name is required.');
+  return;
+}
     if (errors.length) {
       alert('Please fix the following issues:\n- ' + errors.join('\n- '));
       return;
