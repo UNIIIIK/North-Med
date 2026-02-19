@@ -206,11 +206,22 @@
               </div>
 
               <div class="form-group">
-                <label for="itemName">Item Name</label>
-                <select id="itemName" name="itemName" class="form-select form-select-sm" required>
-                  <option value="">Select item</option>
-                </select>
-              </div>
+    <label for="itemName">Item Name</label>
+    <select id="itemName" name="itemName" class="form-select form-select-sm" required>
+      <option value="">Select item</option>
+    </select>
+  
+    <!-- Shows only when "Other" is selected -->
+    <input
+      type="text"
+      id="customItemName"
+      name="customItemName"
+      class="form-control form-control-sm mt-2"
+      placeholder="Enter custom reagent name..."
+      hidden
+    />
+  </div>
+
 
               <div class="form-group">
                 <label for="brand">Brand / Supplier</label>
