@@ -150,14 +150,9 @@ body {
   color: var(--color-text-muted);
 }
 
-.app-header__logo {
-  width: 52px;
-  height: 52px;
-  border-radius: 999px;
-  object-fit: cover;
-  margin-right: 10px;
-  box-shadow: 0 0 0 2px rgba(248, 250, 252, 0.6);
-  background: #fff;
+.app-header__title-group {
+  display: flex;
+  flex-direction: column;
 }
 
 .app-header__topbar {
