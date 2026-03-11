@@ -6,6 +6,7 @@
 // ===============================
 // Domain & Utility Layer (Single-responsibility helpers)
 // ===============================
+let USER_BRANCH = null;
 
 const CategoryItems = Object.freeze({
   Chemistry: [
@@ -195,6 +196,7 @@ const InventoryRepository = (() => {
       status: item.status || 'Unopened',
       quantity: Number(item.quantity ?? 0),
       remarks: item.remarks || null,
+      branch: USER_BRANCH,
     };
   }
 
@@ -203,9 +205,10 @@ const InventoryRepository = (() => {
     if (!supabase) return [];
     try {
       const { data, error } = await supabase
-        .from(TABLE_NAME)
-        .select('*')
-        .order('expiry_date', { ascending: true });
+  .from(TABLE_NAME)
+  .select('*')
+  .eq('branch', USER_BRANCH)
+  .order('expiry_date', { ascending: true });
 
       if (error) {
         console.error('Failed to load inventory from Supabase', error);
@@ -940,11 +943,14 @@ async function bootstrap() {
   }
 
   try {
-    const { data, error } = await supabase.auth.getUser();
-    if (error || !data || !data.user) {
-      window.location.href = 'login.html';
-      return;
-    }
+   const { data, error } = await supabase.auth.getUser();
+
+if (error || !data || !data.user) {
+  window.location.href = 'login.html';
+  return;
+}
+
+USER_BRANCH = data.user.user_metadata.branch || "sogod";
   } catch (err) {
     console.error('Error checking auth state', err);
     window.location.href = 'login.html';
