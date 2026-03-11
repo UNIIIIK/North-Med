@@ -255,12 +255,12 @@ body {
 }
 
 .topbar-profile__logo {
-  width: 36px;
-  height: 36px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   object-fit: cover;
   background: white;
-  box-shadow: 0 0 0 2px rgba(255,255,255,0.6);
+  box-shadow: 0 0 0 2px rgba(248,250,252,0.5);
 }
 
 /* ===========
