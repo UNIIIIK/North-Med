@@ -951,6 +951,14 @@ if (error || !data || !data.user) {
 }
 
 USER_BRANCH = data.user.user_metadata.branch || "sogod";
+
+// Show branch in header
+const branchLabel = document.getElementById("branchLabel");
+if (branchLabel) {
+  branchLabel.textContent = USER_BRANCH.toUpperCase() + " Branch";
+}
+
+USER_BRANCH = data.user.user_metadata.branch || "sogod";
   } catch (err) {
     console.error('Error checking auth state', err);
     window.location.href = 'login.html';
