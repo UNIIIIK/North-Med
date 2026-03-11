@@ -254,6 +254,15 @@ body {
   );
 }
 
+.topbar-profile__logo {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: white;
+  box-shadow: 0 0 0 2px rgba(255,255,255,0.6);
+}
+
 /* ===========
    Core UI Primitives
    =========== */
