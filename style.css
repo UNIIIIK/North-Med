@@ -687,20 +687,24 @@ tbody tr:hover {
 
 /* Expiry row highlighting */
 
-.row-expired {
-  background: rgba(127,29,29,0.55) !important;
+tbody tr.row-expired {
+  background: rgba(127, 29, 29, 0.55) !important;
 }
 
-.row-expired:hover {
-  background: rgba(127,29,29,0.75) !important;
+tbody tr.row-expired:hover {
+  background: rgba(127, 29, 29, 0.75) !important;
 }
 
-.row-expiring {
-  background: rgba(113,63,18,0.55) !important;
+tbody tr.row-expiring {
+  background: rgba(113, 63, 18, 0.55) !important;
 }
 
-.row-expiring:hover {
-  background: rgba(113,63,18,0.75) !important;
+tbody tr.row-expiring:hover {
+  background: rgba(113, 63, 18, 0.75) !important;
+}
+
+tbody tr.row-expired {
+  box-shadow: inset 0 0 0 1px rgba(248,113,113,0.5);
 }
 /* ===========
    Modal
