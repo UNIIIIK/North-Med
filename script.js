@@ -705,6 +705,12 @@ const UI = (() => {
     sorted.forEach((item) => {
       const tr = document.createElement('tr');
       const expInfo = DateUtils.classifyExpiry(item.expiryDate);
+      let rowClass = "";
+
+      if (expInfo.code === "expired") rowClass = "row-expired";
+      if (expInfo.code === "warning") rowClass = "row-expiring";
+
+      tr.className = rowClass;
       const expClass =
         expInfo.code === 'expired'
           ? 'tag--exp-expired'
@@ -778,7 +784,7 @@ const UI = (() => {
       els.kpiExpSoon.textContent = String(alerts.expSoon);
     }
     if (els.kpiOutOrZero) {
-      const totalOut = alerts.outOfStock + alerts.zeroQty;
+      const totalOut = alerts.expired + alerts.outOfStock + alerts.zeroQty;
       els.kpiOutOrZero.textContent = String(totalOut);
     }
     if (els.kpiTotal) {
