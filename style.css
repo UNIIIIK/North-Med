@@ -684,6 +684,24 @@ tbody tr:hover {
   background: rgba(31,41,55,0.95);
   transform: scale(1.004);
 }
+
+/* Expiry row highlighting */
+
+.row-expired {
+  background: rgba(127,29,29,0.55) !important;
+}
+
+.row-expired:hover {
+  background: rgba(127,29,29,0.75) !important;
+}
+
+.row-expiring {
+  background: rgba(113,63,18,0.55) !important;
+}
+
+.row-expiring:hover {
+  background: rgba(113,63,18,0.75) !important;
+}
 /* ===========
    Modal
    =========== */
