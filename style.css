@@ -685,26 +685,30 @@ tbody tr:hover {
   transform: scale(1.004);
 }
 
-/* Expiry row highlighting */
-
-tbody tr.row-expired {
+/* Expired rows */
+tbody tr.row-expired td {
   background: rgba(127, 29, 29, 0.55) !important;
 }
 
-tbody tr.row-expired:hover {
+tbody tr.row-expired:hover td {
   background: rgba(127, 29, 29, 0.75) !important;
 }
 
-tbody tr.row-expiring {
+/* Expiring soon rows */
+tbody tr.row-expiring td {
   background: rgba(113, 63, 18, 0.55) !important;
 }
 
-tbody tr.row-expiring:hover {
+tbody tr.row-expiring:hover td {
   background: rgba(113, 63, 18, 0.75) !important;
 }
 
-tbody tr.row-expired {
-  box-shadow: inset 0 0 0 1px rgba(248,113,113,0.5);
+tbody tr.row-expired td:first-child {
+  border-left: 4px solid #ef4444;
+}
+
+tbody tr.row-expiring td:first-child {
+  border-left: 4px solid #facc15;
 }
 /* ===========
    Modal
